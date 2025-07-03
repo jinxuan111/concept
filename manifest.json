@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "Auto Crypto Address Checker",
+  "version": "1.0",
+  "description": "Automatically checks for crypto addresses on Twitter/X profiles.",
+  "permissions": [
+    "activeTab",
+    "scripting"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://x.com/*", "https://twitter.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_end"
+    }
+  ]
+}
