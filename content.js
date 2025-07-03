@@ -1,15 +1,35 @@
 function checkCryptoAddresses() {
-  // Regular expression for Solana addresses (Base58, 32-44 chars)
-  const cryptoAddressRegex = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+  // Regular expressions for various crypto addresses
+  const cryptoAddressRegexes = [
+    /[1-9A-HJ-NP-Za-km-z]{32,44}/g, // Solana/Base58
+    /0x[a-fA-F0-9]{40}/g,            // Ethereum
+    /[13][a-km-zA-HJ-NP-Z1-9]{26,35}/g // Bitcoin
+  ];
 
-  // Get user bio from the profile page
-  const bioElement = document.querySelector('div[data-testid="UserDescription"]');
-  const bioText = bioElement ? bioElement.innerText : '';
+  // Collect text from multiple potential bio elements and links
+  let allText = '';
+  const bioElements = document.querySelectorAll('div[data-testid="UserDescription"], article div, span');
+  bioElements.forEach(el => {
+    if (el.innerText) allText += el.innerText + ' ';
+  });
+  const links = document.querySelectorAll('a');
+  links.forEach(link => {
+    if (link.innerText) allText += link.innerText + ' ';
+  });
 
-  // Find matches in the bio
-  const matches = bioText.match(cryptoAddressRegex);
-  if (matches && matches.length > 0) {
-    // Create a floating alert to display the result
+  // Debug log
+  console.log('Analyzing text:', allText);
+
+  // Find matches
+  let allMatches = [];
+  cryptoAddressRegexes.forEach(regex => {
+    const matches = allText.match(regex);
+    if (matches) allMatches = allMatches.concat(matches);
+  });
+
+  if (allMatches.length > 0) {
+    // Remove duplicates
+    const uniqueMatches = [...new Set(allMatches)];
     const alertDiv = document.createElement('div');
     alertDiv.style.cssText = `
       position: fixed;
@@ -21,14 +41,25 @@ function checkCryptoAddresses() {
       border-radius: 5px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
       z-index: 1000;
+      max-width: 300px;
     `;
-    alertDiv.innerHTML = `Found Crypto Address: <strong>${matches[0]}</strong>`;
+    alertDiv.innerHTML = `Found Crypto Address(es):<br><strong>${uniqueMatches.join('<br>')}</strong>`;
     document.body.appendChild(alertDiv);
-
-    // Auto-remove alert after 5 seconds
-    setTimeout(() => alertDiv.remove(), 5000);
+    setTimeout(() => alertDiv.remove(), 10000);
+  } else {
+    console.log('No crypto addresses found in bio or links.');
   }
 }
 
-// Run the check when the page loads
+// Run the check when the page is fully loaded
 window.addEventListener('load', checkCryptoAddresses);
+
+// Handle dynamic content
+const observer = new MutationObserver((mutations) => {
+  mutations.forEach((mutation) => {
+    if (mutation.addedNodes.length) {
+      checkCryptoAddresses();
+    }
+  });
+});
+observer.observe(document.body, { childList: true, subtree: true });
