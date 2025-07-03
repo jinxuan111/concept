@@ -5,7 +5,12 @@
   "description": "Automatically checks for crypto addresses on Twitter/X profiles.",
   "permissions": [
     "activeTab",
-    "scripting"
+    "scripting",
+    "webNavigation"
+  ],
+  "host_permissions": [
+    "https://x.com/*",
+    "https://twitter.com/*"
   ],
   "content_scripts": [
     {
