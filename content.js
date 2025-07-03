@@ -7,9 +7,11 @@ function checkCryptoAddresses() {
       /(?:^|\s)([13][a-km-zA-HJ-NP-Z1-9]{26,35})(?!\w)/g // Bitcoin, with word boundary
     ];
 
+    // Check if alert is already active
+    if (document.hasFocus() && window.alertActive) return;
+
     setTimeout(() => {
       let allText = '';
-      // Focus on bio and relevant content, avoid sidebar noise
       const bioElements = document.querySelectorAll('div[data-testid="UserDescription"], article div');
       bioElements.forEach(el => {
         if (el.innerText) {
@@ -32,13 +34,14 @@ function checkCryptoAddresses() {
 
       if (allMatches.length > 0) {
         const uniqueMatches = [...new Set(allMatches)];
-        // Use alert to bypass CSP
+        window.alertActive = true; // Set flag to prevent re-trigger
         alert(`Found Crypto Address(es):\n${uniqueMatches.join('\n')}`);
+        window.alertActive = false; // Reset flag after alert
         console.log('Detected addresses:', uniqueMatches);
       } else {
         console.log('No crypto addresses found in bio or links.');
       }
-      // Prevent duplicate alerts
+      // Prevent duplicate alerts within 10 seconds
       let lastAlertTime = sessionStorage.getItem('lastAlertTime');
       let currentTime = Date.now();
       if (lastAlertTime && (currentTime - lastAlertTime < 10000)) return;
